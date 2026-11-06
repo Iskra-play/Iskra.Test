@@ -1,19 +1,20 @@
 <!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"><title>Redirecting to ISKRA...</title></head>
+<head>
+  <meta charset="utf-8">
+  <title>Авторизация Iskra</title>
+</head>
 <body>
-<script>
-  // Получаем параметры, автоматически добавляемые Telegram (tg_id, username и т.д.)
-  const params = new URLSearchParams(window.location.search);
-  const tgId = params.get('id'); // Telegram автоматически добавит id
-  const username = params.get('username') || 'user';
-  
-  if (tgId) {
-    // Ключевой момент: вызываем ваш кастомный протокол
-    window.location.href = `iskra://auth?tg_id=${tgId}&username=${username}`;
-  } else {
-    document.body.innerText = "Ошибка авторизации: не получен ID пользователя.";
-  }
-</script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const userId = params.get('user_id') || params.get('id') || params.get('telegram_id');
+    const username = params.get('username') || params.get('first_name') || 'Telegram User';
+
+    if (userId) {
+      window.location.href = `iskra://auth?user_id=${userId}&username=${encodeURIComponent(username)}`;
+    } else {
+      document.body.innerHTML = 'Ошибка авторизации: не получен ID пользователя.';
+    }
+  </script>
 </body>
 </html>
