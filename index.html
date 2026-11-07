@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Авторизация в Iskra</title>
+    <!-- ВОТ ГЛАВНАЯ СТРОКА, КОТОРОЙ НЕ ХВАТАЛО -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { background-color: #09090d; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; text-align: center; }
+        .btn { padding: 14px 28px; background: #c6a0ff; color: #000; border: none; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; display: none; margin-top: 20px; text-decoration: none; }
+        h2 { margin-bottom: 10px; }
+        p { color: #9692a3; font-size: 14px; max-width: 300px; line-height: 1.5; }
+        #status { margin-top: 20px; font-size: 12px; color: #ff5c8a; word-break: break-all; text-align: left; background: #1a1a20; padding: 10px; border-radius: 8px; width: 100%; max-width: 400px; }
+    </style>
+</head>
+<body>
+    <h2>Авторизация в Iskra...</h2>
+    <p id="msg">Проверяем данные Telegram...</p>
+    
+    <a id="authBtn" class="btn">Войти в Iskra</a>
+    
+    <div id="status"></div>
+
+    <script>
+        // Ждем, пока Telegram SDK загрузится
+        window.onload = function() {
+            try {
+                if (!window.Telegram || !window.Telegram.WebApp) {
+                    throw new Error("Telegram SDK не загрузился. Проверьте интернет или Zapret.");
+                }
+
+                const webapp = window.Telegram.WebApp;
+                webapp.ready();
+                webapp.expand();
+
+                const user = webapp.initDataUnsafe?.user;
+
+                if (user && user.id) {
+                    const redirectUrl = `iskra://auth?user_id=${user.id}&username=${encodeURIComponent(user.first_name || "User")}`;
+                    
+                    document.getElementById("msg").innerText = `Привет, ${user.first_name}! Перенаправляем...`;
+                    document.getElementById("status").innerText = "Ссылка: " + redirectUrl;
+
+                    setTimeout(() => {
+                        window.location.href = redirectUrl;
+                    }, 1500);
+
+                    const btn = document.getElementById("authBtn");
+                    btn.href = redirectUrl;
+                    btn.style.display = "inline-block";
+                } else {
+                    document.getElementById("msg").innerText = "Ошибка: Telegram не передал данные пользователя.";
+                    document.getElementById("msg").style.color = "#ff5c8a";
+                    document.getElementById("status").innerText = "initDataUnsafe: " + JSON.stringify(webapp.initDataUnsafe) + "\nHash: " + window.location.hash;
+                }
+            } catch (e) {
+                document.getElementById("msg").innerText = "Ошибка скрипта.";
+                document.getElementById("status").innerText = e.message;
+            }
+        };
+    </script>
+</body>
+</html>
