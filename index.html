@@ -23,119 +23,53 @@
             overflow: hidden;
         }
 
-        /* Фоновое свечение в стиле Iskra */
         .glow {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 400px;
-            height: 400px;
-            background: #c6a0ff;
-            filter: blur(120px);
-            opacity: 0.15;
-            z-index: 0;
-            pointer-events: none;
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 400px; height: 400px; background: #c6a0ff; filter: blur(120px);
+            opacity: 0.15; z-index: 0; pointer-events: none;
         }
 
         .card {
-            position: relative;
-            z-index: 1;
+            position: relative; z-index: 1;
             background: rgba(25, 24, 32, 0.65);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
+            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 24px;
-            padding: 40px 30px;
-            width: 100%;
-            max-width: 360px;
-            text-align: center;
+            border-radius: 24px; padding: 40px 30px;
+            width: 100%; max-width: 360px; text-align: center;
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
         }
 
-        /* Логотип */
         .logo {
-            width: 64px;
-            height: 64px;
+            width: 64px; height: 64px;
             background: linear-gradient(135deg, #c6a0ff, #9c6cff);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px auto;
-            font-size: 32px;
-            font-weight: 700;
-            color: #000;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px auto; font-size: 32px; font-weight: 700; color: #000;
             box-shadow: 0 0 40px rgba(198, 160, 255, 0.3);
         }
 
-        h1 {
-            font-size: 24px;
-            font-weight: 700;
-            margin: 0 0 8px 0;
-            letter-spacing: -0.5px;
-        }
+        h1 { font-size: 24px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.5px; }
+        .subtitle { color: #9692a3; font-size: 14px; line-height: 1.5; margin-bottom: 24px; }
+        .username { color: #c6a0ff; font-weight: 600; }
 
-        .subtitle {
-            color: #9692a3;
-            font-size: 14px;
-            line-height: 1.5;
-            margin-bottom: 24px;
-        }
-
-        .username {
-            color: #c6a0ff;
-            font-weight: 600;
-        }
-
-        /* Кнопка */
         .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            padding: 16px;
-            background: #f7f5fb;
-            color: #000;
-            border: none;
-            border-radius: 16px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-            transition: transform 0.2s, background 0.2s;
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 100%; padding: 16px; background: #f7f5fb; color: #000;
+            border: none; border-radius: 16px; font-size: 15px; font-weight: 600;
+            cursor: pointer; text-decoration: none; transition: transform 0.2s, background 0.2s;
             margin-top: 10px;
         }
 
-        .btn:active {
-            transform: scale(0.96);
-            background: #e0dce6;
-        }
+        .btn:active { transform: scale(0.96); background: #e0dce6; }
 
-        /* Анимация загрузки */
         .spinner {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: #c6a0ff;
-            animation: spin 1s ease-in-out infinite;
-            margin-right: 8px;
-            vertical-align: middle;
+            display: inline-block; width: 16px; height: 16px;
+            border: 2px solid rgba(255,255,255,0.3); border-radius: 50%;
+            border-top-color: #c6a0ff; animation: spin 1s ease-in-out infinite;
+            margin-right: 8px; vertical-align: middle;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* Текст ошибки */
-        .error {
-            color: #ff5c8a;
-            font-size: 12px;
-            margin-top: 16px;
-            display: none;
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .error { color: #ff5c8a; font-size: 12px; margin-top: 16px; display: none; }
     </style>
 </head>
 <body>
@@ -174,15 +108,18 @@
                     
                     document.getElementById("msg").innerHTML = `Привет, <span class="username">${user.first_name}</span>!<br>Сейчас перенаправим в приложение...`;
 
-                    // Пытаемся редиректнуть через 1.5 секунды
+                    // Формируем ссылку на прослойку (redirect.html)
+                    const proxyUrl = `https://iskra-play.github.io/Iskra.Test/redirect.html?url=${encodeURIComponent(redirectUrl)}`;
+
+                    // Пытаемся сделать редирект на прослойку через 1.5 секунды
                     setTimeout(() => {
-                        window.location.href = redirectUrl;
+                        window.location.href = proxyUrl;
                     }, 1500);
 
-                    // Показываем кнопку на случай, если редирект заблокирован
+                    // Показываем кнопку на случай, если автоматический редирект заблокирован
                     setTimeout(() => {
                         const btn = document.getElementById("authBtn");
-                        btn.href = redirectUrl;
+                        btn.href = proxyUrl;
                         btn.style.display = "inline-flex";
                         document.getElementById("msg").innerHTML = `Если приложение не открылось, нажмите кнопку ниже.`;
                     }, 2000);
