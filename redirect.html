@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Открываем Iskra...</title>
+</head>
+<body>
+    <script>
+        // Берем ссылку iskra:// из параметра url
+        const params = new URLSearchParams(window.location.search);
+        const targetUrl = params.get('url');
+        
+        if (targetUrl) {
+            // Редирект на приложение
+            window.location.href = targetUrl;
+        } else {
+            document.body.innerHTML = 'Ошибка: ссылка не найдена.';
+        }
+    </script>
+</body>
+</html>
