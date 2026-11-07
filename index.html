@@ -6,96 +6,43 @@
     <title>Авторизация в Iskra</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-        body { 
-            background-color: #09090d; 
-            color: #f7f5fb; 
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            height: 100vh; 
-            margin: 0; 
-            padding: 20px; 
-            overflow: hidden;
-        }
-
-        .glow {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 400px; height: 400px; background: #c6a0ff; filter: blur(120px);
-            opacity: 0.15; z-index: 0; pointer-events: none;
-        }
-
-        .card {
-            position: relative; z-index: 1;
-            background: rgba(25, 24, 32, 0.65);
-            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 24px; padding: 40px 30px;
-            width: 100%; max-width: 360px; text-align: center;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-        }
-
-        .logo {
-            width: 64px; height: 64px;
-            background: linear-gradient(135deg, #c6a0ff, #9c6cff);
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            margin: 0 auto 20px auto; font-size: 32px; font-weight: 700; color: #000;
-            box-shadow: 0 0 40px rgba(198, 160, 255, 0.3);
-        }
-
+        body { background-color: #09090d; color: #f7f5fb; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; padding: 20px; overflow: hidden; }
+        .glow { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 400px; height: 400px; background: #c6a0ff; filter: blur(120px); opacity: 0.15; z-index: 0; pointer-events: none; }
+        .card { position: relative; z-index: 1; background: rgba(25, 24, 32, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 24px; padding: 40px 30px; width: 100%; max-width: 360px; text-align: center; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5); }
+        .logo { width: 64px; height: 64px; background: linear-gradient(135deg, #c6a0ff, #9c6cff); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; font-size: 32px; font-weight: 700; color: #000; box-shadow: 0 0 40px rgba(198, 160, 255, 0.3); }
         h1 { font-size: 24px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.5px; }
         .subtitle { color: #9692a3; font-size: 14px; line-height: 1.5; margin-bottom: 24px; }
         .username { color: #c6a0ff; font-weight: 600; }
-        
-        .spinner {
-            display: inline-block; width: 16px; height: 16px;
-            border: 2px solid rgba(255,255,255,0.3); border-radius: 50%;
-            border-top-color: #c6a0ff; animation: spin 1s ease-in-out infinite;
-            margin-right: 8px; vertical-align: middle;
-        }
+        .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #c6a0ff; animation: spin 1s ease-in-out infinite; margin-right: 8px; vertical-align: middle; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .error { color: #ff5c8a; font-size: 12px; margin-top: 16px; display: none; }
     </style>
 </head>
 <body>
     <div class="glow"></div>
-    
     <div class="card">
         <div class="logo">i</div>
         <h1>Iskra</h1>
-        <div class="subtitle" id="msg">
-            <span class="spinner"></span> Проверяем данные...
-        </div>
-        
+        <div class="subtitle" id="msg"><span class="spinner"></span> Проверяем данные...</div>
         <div id="error" class="error"></div>
     </div>
-
     <script>
         try {
             const hash = window.location.hash.substring(1);
             const params = new URLSearchParams(hash);
             let tgWebAppData = params.get('tgWebAppData');
-            
             if (!tgWebAppData) {
                 const searchParams = new URLSearchParams(window.location.search);
                 tgWebAppData = searchParams.get('tgWebAppData');
             }
-
             if (tgWebAppData) {
                 const decodedData = decodeURIComponent(tgWebAppData);
                 const userParam = new URLSearchParams(decodedData).get('user');
-                
                 if (userParam) {
                     const user = JSON.parse(userParam);
                     document.getElementById("msg").innerHTML = `Привет, <span class="username">${user.first_name}</span>!<br>Сейчас войдём в приложение...`;
-
-                    // Отправляем данные на локальный сервер Iskra
                     const authUrl = `http://127.0.0.1:1421/auth?user_id=${user.id}&username=${encodeURIComponent(user.first_name || "User")}`;
-                    
                     fetch(authUrl)
                         .then(() => {
                             document.getElementById("msg").innerHTML = `Успешно! Теперь вернитесь в Iskra.`;
