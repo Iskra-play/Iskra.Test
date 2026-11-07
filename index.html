@@ -50,24 +50,13 @@
         h1 { font-size: 24px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.5px; }
         .subtitle { color: #9692a3; font-size: 14px; line-height: 1.5; margin-bottom: 24px; }
         .username { color: #c6a0ff; font-weight: 600; }
-
-        .btn {
-            display: inline-flex; align-items: center; justify-content: center;
-            width: 100%; padding: 16px; background: #f7f5fb; color: #000;
-            border: none; border-radius: 16px; font-size: 15px; font-weight: 600;
-            cursor: pointer; text-decoration: none; transition: transform 0.2s, background 0.2s;
-            margin-top: 10px;
-        }
-
-        .btn:active { transform: scale(0.96); background: #e0dce6; }
-
+        
         .spinner {
             display: inline-block; width: 16px; height: 16px;
             border: 2px solid rgba(255,255,255,0.3); border-radius: 50%;
             border-top-color: #c6a0ff; animation: spin 1s ease-in-out infinite;
             margin-right: 8px; vertical-align: middle;
         }
-
         @keyframes spin { to { transform: rotate(360deg); } }
         .error { color: #ff5c8a; font-size: 12px; margin-top: 16px; display: none; }
     </style>
@@ -81,8 +70,6 @@
         <div class="subtitle" id="msg">
             <span class="spinner"></span> Проверяем данные...
         </div>
-        
-        <a id="authBtn" class="btn" style="display: none;">Войти в Iskra</a>
         
         <div id="error" class="error"></div>
     </div>
@@ -104,26 +91,19 @@
                 
                 if (userParam) {
                     const user = JSON.parse(userParam);
-                    const redirectUrl = `iskra://auth?user_id=${user.id}&username=${encodeURIComponent(user.first_name || "User")}`;
+                    document.getElementById("msg").innerHTML = `Привет, <span class="username">${user.first_name}</span>!<br>Сейчас войдём в приложение...`;
+
+                    // Отправляем данные на локальный сервер Iskra
+                    const authUrl = `http://127.0.0.1:1421/auth?user_id=${user.id}&username=${encodeURIComponent(user.first_name || "User")}`;
                     
-                    document.getElementById("msg").innerHTML = `Привет, <span class="username">${user.first_name}</span>!<br>Сейчас перенаправим в приложение...`;
-
-                    // Формируем ссылку на прослойку (redirect.html)
-                    const proxyUrl = `https://iskra-play.github.io/Iskra.Test/redirect.html?url=${encodeURIComponent(redirectUrl)}`;
-
-                    // Пытаемся сделать редирект на прослойку через 1.5 секунды
-                    setTimeout(() => {
-                        window.location.href = proxyUrl;
-                    }, 1500);
-
-                    // Показываем кнопку на случай, если автоматический редирект заблокирован
-                    setTimeout(() => {
-                        const btn = document.getElementById("authBtn");
-                        btn.href = proxyUrl;
-                        btn.style.display = "inline-flex";
-                        document.getElementById("msg").innerHTML = `Если приложение не открылось, нажмите кнопку ниже.`;
-                    }, 2000);
-
+                    fetch(authUrl)
+                        .then(() => {
+                            document.getElementById("msg").innerHTML = `Успешно! Теперь вернитесь в Iskra.`;
+                        })
+                        .catch(() => {
+                            document.getElementById("msg").innerHTML = `Ошибка: Iskra не запущена на вашем ПК.`;
+                            document.getElementById("msg").style.color = "#ff5c8a";
+                        });
                 } else {
                     throw new Error("Данные пользователя не найдены.");
                 }
