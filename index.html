@@ -4,7 +4,6 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Авторизация в Iskra</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body { background-color: #09090d; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; text-align: center; }
         .btn { padding: 14px 28px; background: #c6a0ff; color: #000; border: none; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; display: none; margin-top: 20px; text-decoration: none; }
@@ -23,34 +22,54 @@
 
     <script>
         try {
-            const webapp = window.Telegram.WebApp;
-            webapp.ready();
-            webapp.expand();
+            // Telegram передает данные в хэше URL (после #)
+            // Формат: #tgWebAppData=user%3D...&tgWebAppVersion=6.0...
+            const hash = window.location.hash.substring(1);
+            const params = new URLSearchParams(hash);
+            const tgWebAppData = params.get('tgWebAppData');
 
-            const user = webapp.initDataUnsafe?.user;
-
-            if (user && user.id) {
-                const redirectUrl = `iskra://auth?user_id=${user.id}&username=${encodeURIComponent(user.first_name || "User")}`;
+            if (tgWebAppData) {
+                // Декодируем данные
+                const decodedData = decodeURIComponent(tgWebAppData);
+                const userParam = new URLSearchParams(decodedData).get('user');
                 
-                document.getElementById("msg").innerText = `Привет, ${user.first_name}! Перенаправляем...`;
-                document.getElementById("status").innerText = "Ссылка: " + redirectUrl;
+                if (userParam) {
+                    const user = JSON.parse(userParam);
+                    const redirectUrl = `iskra://auth?user_id=${user.id}&username=${encodeURIComponent(user.first_name || "User")}`;
+                    
+                    document.getElementById("msg").innerText = `Привет, ${user.first_name}! Перенаправляем...`;
+                    document.getElementById("status").innerText = "Ссылка: " + redirectUrl;
 
-                // Пытаемся сделать редирект
-                setTimeout(() => {
-                    window.location.href = redirectUrl;
-                }, 1000);
+                    setTimeout(() => {
+                        window.location.href = redirectUrl;
+                    }, 1000);
 
-                // Показываем кнопку на случай, если редирект заблокирован
-                const btn = document.getElementById("authBtn");
-                btn.href = redirectUrl;
-                btn.style.display = "inline-block";
+                    const btn = document.getElementById("authBtn");
+                    btn.href = redirectUrl;
+                    btn.style.display = "inline-block";
+                } else {
+                    throw new Error("User data not found in tgWebAppData");
+                }
             } else {
-                document.getElementById("msg").innerText = "Ошибка: Telegram не передал данные пользователя.";
-                document.getElementById("msg").style.color = "#ff5c8a";
-                document.getElementById("status").innerText = "initDataUnsafe: " + JSON.stringify(webapp.initDataUnsafe);
+                // Если данных нет, возможно, страница открыта не в Telegram Web App
+                // Но мы попробуем использовать window.Telegram, если он есть
+                if (window.Telegram && window.Telegram.WebApp) {
+                    window.Telegram.WebApp.ready();
+                    const user = window.Telegram.WebApp.initDataUnsafe?.user;
+                    if (user && user.id) {
+                        const redirectUrl = `iskra://auth?user_id=${user.id}&username=${encodeURIComponent(user.first_name || "User")}`;
+                        document.getElementById("msg").innerText = `Привет, ${user.first_name}! Перенаправляем...`;
+                        setTimeout(() => { window.location.href = redirectUrl; }, 1000);
+                        const btn = document.getElementById("authBtn");
+                        btn.href = redirectUrl;
+                        btn.style.display = "inline-block";
+                        return;
+                    }
+                }
+                throw new Error("Данные Telegram не найдены. Откройте через бота.");
             }
         } catch (e) {
-            document.getElementById("msg").innerText = "Ошибка скрипта.";
+            document.getElementById("msg").innerText = "Ошибка авторизации.";
             document.getElementById("status").innerText = e.message;
         }
     </script>
