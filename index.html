@@ -5,37 +5,166 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Авторизация в Iskra</title>
     <style>
-        body { background-color: #09090d; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; text-align: center; }
-        .btn { padding: 14px 28px; background: #c6a0ff; color: #000; border: none; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; display: none; margin-top: 20px; text-decoration: none; }
-        h2 { margin-bottom: 10px; }
-        p { color: #9692a3; font-size: 14px; max-width: 300px; line-height: 1.5; }
-        #status { margin-top: 20px; font-size: 12px; color: #ff5c8a; word-break: break-all; text-align: left; background: #1a1a20; padding: 10px; border-radius: 8px; width: 100%; max-width: 400px; white-space: pre-wrap; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body { 
+            background-color: #09090d; 
+            color: #f7f5fb; 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100vh; 
+            margin: 0; 
+            padding: 20px; 
+            overflow: hidden;
+        }
+
+        /* Фоновое свечение в стиле Iskra */
+        .glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            height: 400px;
+            background: #c6a0ff;
+            filter: blur(120px);
+            opacity: 0.15;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .card {
+            position: relative;
+            z-index: 1;
+            background: rgba(25, 24, 32, 0.65);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 40px 30px;
+            width: 100%;
+            max-width: 360px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Логотип */
+        .logo {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #c6a0ff, #9c6cff);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px auto;
+            font-size: 32px;
+            font-weight: 700;
+            color: #000;
+            box-shadow: 0 0 40px rgba(198, 160, 255, 0.3);
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0 0 8px 0;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            color: #9692a3;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 24px;
+        }
+
+        .username {
+            color: #c6a0ff;
+            font-weight: 600;
+        }
+
+        /* Кнопка */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 16px;
+            background: #f7f5fb;
+            color: #000;
+            border: none;
+            border-radius: 16px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: transform 0.2s, background 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn:active {
+            transform: scale(0.96);
+            background: #e0dce6;
+        }
+
+        /* Анимация загрузки */
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #c6a0ff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Текст ошибки */
+        .error {
+            color: #ff5c8a;
+            font-size: 12px;
+            margin-top: 16px;
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <h2>Авторизация в Iskra...</h2>
-    <p id="msg">Проверяем данные Telegram...</p>
+    <div class="glow"></div>
     
-    <a id="authBtn" class="btn">Войти в Iskra</a>
-    
-    <div id="status"></div>
+    <div class="card">
+        <div class="logo">i</div>
+        <h1>Iskra</h1>
+        <div class="subtitle" id="msg">
+            <span class="spinner"></span> Проверяем данные...
+        </div>
+        
+        <a id="authBtn" class="btn" style="display: none;">Войти в Iskra</a>
+        
+        <div id="error" class="error"></div>
+    </div>
 
     <script>
-        // Никакого внешнего скрипта! Только чистый JS.
         try {
-            // 1. Пытаемся взять данные из хэша (Telegram кладет их туда)
             const hash = window.location.hash.substring(1);
             const params = new URLSearchParams(hash);
             let tgWebAppData = params.get('tgWebAppData');
             
-            // Если в хэше нет, пробуем найти в search (на всякий случай)
             if (!tgWebAppData) {
                 const searchParams = new URLSearchParams(window.location.search);
                 tgWebAppData = searchParams.get('tgWebAppData');
             }
 
             if (tgWebAppData) {
-                // Декодируем данные
                 const decodedData = decodeURIComponent(tgWebAppData);
                 const userParam = new URLSearchParams(decodedData).get('user');
                 
@@ -43,31 +172,31 @@
                     const user = JSON.parse(userParam);
                     const redirectUrl = `iskra://auth?user_id=${user.id}&username=${encodeURIComponent(user.first_name || "User")}`;
                     
-                    document.getElementById("msg").innerText = `Привет, ${user.first_name}! Перенаправляем...`;
-                    document.getElementById("status").innerText = "Ссылка: " + redirectUrl;
+                    document.getElementById("msg").innerHTML = `Привет, <span class="username">${user.first_name}</span>!<br>Сейчас перенаправим в приложение...`;
 
+                    // Пытаемся редиректнуть через 1.5 секунды
                     setTimeout(() => {
                         window.location.href = redirectUrl;
-                    }, 1000);
+                    }, 1500);
 
-                    const btn = document.getElementById("authBtn");
-                    btn.href = redirectUrl;
-                    btn.style.display = "inline-block";
+                    // Показываем кнопку на случай, если редирект заблокирован
+                    setTimeout(() => {
+                        const btn = document.getElementById("authBtn");
+                        btn.href = redirectUrl;
+                        btn.style.display = "inline-flex";
+                        document.getElementById("msg").innerHTML = `Если приложение не открылось, нажмите кнопку ниже.`;
+                    }, 2000);
+
                 } else {
-                    throw new Error("В tgWebAppData не найден user.");
+                    throw new Error("Данные пользователя не найдены.");
                 }
             } else {
-                // Если данных нет, выводим отладку
-                document.getElementById("msg").innerText = "Ошибка: данные Telegram не найдены.";
-                document.getElementById("msg").style.color = "#ff5c8a";
-                document.getElementById("status").innerText = 
-                    "URL: " + window.location.href + 
-                    "\nHash: " + window.location.hash + 
-                    "\nSearch: " + window.location.search;
+                throw new Error("Откройте эту страницу через Telegram.");
             }
         } catch (e) {
-            document.getElementById("msg").innerText = "Ошибка скрипта.";
-            document.getElementById("status").innerText = e.message;
+            document.getElementById("msg").style.display = "none";
+            document.getElementById("error").style.display = "block";
+            document.getElementById("error").innerText = e.message;
         }
     </script>
 </body>
