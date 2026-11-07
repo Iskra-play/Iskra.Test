@@ -4,14 +4,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Авторизация в Iskra</title>
-    <!-- ВОТ ГЛАВНАЯ СТРОКА, КОТОРОЙ НЕ ХВАТАЛО -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body { background-color: #09090d; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; text-align: center; }
         .btn { padding: 14px 28px; background: #c6a0ff; color: #000; border: none; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; display: none; margin-top: 20px; text-decoration: none; }
         h2 { margin-bottom: 10px; }
         p { color: #9692a3; font-size: 14px; max-width: 300px; line-height: 1.5; }
-        #status { margin-top: 20px; font-size: 12px; color: #ff5c8a; word-break: break-all; text-align: left; background: #1a1a20; padding: 10px; border-radius: 8px; width: 100%; max-width: 400px; }
+        #status { margin-top: 20px; font-size: 12px; color: #ff5c8a; word-break: break-all; text-align: left; background: #1a1a20; padding: 10px; border-radius: 8px; width: 100%; max-width: 400px; white-space: pre-wrap; }
     </style>
 </head>
 <body>
@@ -23,20 +21,26 @@
     <div id="status"></div>
 
     <script>
-        // Ждем, пока Telegram SDK загрузится
-        window.onload = function() {
-            try {
-                if (!window.Telegram || !window.Telegram.WebApp) {
-                    throw new Error("Telegram SDK не загрузился. Проверьте интернет или Zapret.");
-                }
+        // Никакого внешнего скрипта! Только чистый JS.
+        try {
+            // 1. Пытаемся взять данные из хэша (Telegram кладет их туда)
+            const hash = window.location.hash.substring(1);
+            const params = new URLSearchParams(hash);
+            let tgWebAppData = params.get('tgWebAppData');
+            
+            // Если в хэше нет, пробуем найти в search (на всякий случай)
+            if (!tgWebAppData) {
+                const searchParams = new URLSearchParams(window.location.search);
+                tgWebAppData = searchParams.get('tgWebAppData');
+            }
 
-                const webapp = window.Telegram.WebApp;
-                webapp.ready();
-                webapp.expand();
-
-                const user = webapp.initDataUnsafe?.user;
-
-                if (user && user.id) {
+            if (tgWebAppData) {
+                // Декодируем данные
+                const decodedData = decodeURIComponent(tgWebAppData);
+                const userParam = new URLSearchParams(decodedData).get('user');
+                
+                if (userParam) {
+                    const user = JSON.parse(userParam);
                     const redirectUrl = `iskra://auth?user_id=${user.id}&username=${encodeURIComponent(user.first_name || "User")}`;
                     
                     document.getElementById("msg").innerText = `Привет, ${user.first_name}! Перенаправляем...`;
@@ -44,21 +48,27 @@
 
                     setTimeout(() => {
                         window.location.href = redirectUrl;
-                    }, 1500);
+                    }, 1000);
 
                     const btn = document.getElementById("authBtn");
                     btn.href = redirectUrl;
                     btn.style.display = "inline-block";
                 } else {
-                    document.getElementById("msg").innerText = "Ошибка: Telegram не передал данные пользователя.";
-                    document.getElementById("msg").style.color = "#ff5c8a";
-                    document.getElementById("status").innerText = "initDataUnsafe: " + JSON.stringify(webapp.initDataUnsafe) + "\nHash: " + window.location.hash;
+                    throw new Error("В tgWebAppData не найден user.");
                 }
-            } catch (e) {
-                document.getElementById("msg").innerText = "Ошибка скрипта.";
-                document.getElementById("status").innerText = e.message;
+            } else {
+                // Если данных нет, выводим отладку
+                document.getElementById("msg").innerText = "Ошибка: данные Telegram не найдены.";
+                document.getElementById("msg").style.color = "#ff5c8a";
+                document.getElementById("status").innerText = 
+                    "URL: " + window.location.href + 
+                    "\nHash: " + window.location.hash + 
+                    "\nSearch: " + window.location.search;
             }
-        };
+        } catch (e) {
+            document.getElementById("msg").innerText = "Ошибка скрипта.";
+            document.getElementById("status").innerText = e.message;
+        }
     </script>
 </body>
 </html>
