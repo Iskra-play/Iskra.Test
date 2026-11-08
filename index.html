@@ -42,12 +42,14 @@
                 if (userParam) {
                     const user = JSON.parse(userParam);
                     
-                    // Берем @username из Telegram, если есть, иначе first_name
-                    const displayName = user.username ? user.username : user.first_name;
+                    // Берем Username (тег) и First Name (имя)
+                    const tgUsername = user.username || user.first_name || "User";
+                    const tgFirstName = user.first_name || "User";
                     
-                    document.getElementById("msg").innerHTML = `Привет, <span class="username">${displayName}</span>!<br>Сейчас войдём в приложение...`;
+                    document.getElementById("msg").innerHTML = `Привет, <span class="username">${tgFirstName}</span>!<br>Сейчас войдём в приложение...`;
                     
-                    const authUrl = `http://127.0.0.1:1421/auth?user_id=${user.id}&username=${encodeURIComponent(displayName || "User")}`;
+                    // Передаем оба параметра
+                    const authUrl = `http://127.0.0.1:1421/auth?user_id=${user.id}&username=${encodeURIComponent(tgUsername)}&nickname=${encodeURIComponent(tgFirstName)}`;
                     
                     fetch(authUrl)
                         .then(() => {
