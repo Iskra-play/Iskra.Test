@@ -41,8 +41,14 @@
                 const userParam = new URLSearchParams(decodedData).get('user');
                 if (userParam) {
                     const user = JSON.parse(userParam);
-                    document.getElementById("msg").innerHTML = `Привет, <span class="username">${user.first_name}</span>!<br>Сейчас войдём в приложение...`;
-                    const authUrl = `http://127.0.0.1:1421/auth?user_id=${user.id}&username=${encodeURIComponent(user.first_name || "User")}`;
+                    
+                    // Берем @username из Telegram, если есть, иначе first_name
+                    const displayName = user.username ? user.username : user.first_name;
+                    
+                    document.getElementById("msg").innerHTML = `Привет, <span class="username">${displayName}</span>!<br>Сейчас войдём в приложение...`;
+                    
+                    const authUrl = `http://127.0.0.1:1421/auth?user_id=${user.id}&username=${encodeURIComponent(displayName || "User")}`;
+                    
                     fetch(authUrl)
                         .then(() => {
                             document.getElementById("msg").innerHTML = `Успешно! Теперь вернитесь в Iskra.`;
